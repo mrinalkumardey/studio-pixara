@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Admin | Pixara Digital Studio</title>
+<style>
+:root{--navy:#14213d;--amber:#e8a317;--red:#d62828;--bg:#faf8f4;--line:#e6e1d6}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:#222}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--navy);text-decoration:none}
+.brand img{height:44px;width:auto}
+.btn{background:#25d366;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;font-size:15px;text-align:center}
+.btn.navy{background:var(--navy)}.btn.red{background:var(--red)}.btn.gray{background:#777}
+.hero{background:var(--navy);color:#fff;text-align:center;padding:44px 16px}
+.hero h1{margin:0 0 8px;font-size:clamp(24px,5vw,38px)}.hero p{margin:0 auto 18px;max-width:560px;opacity:.9}
+.hero a.btn{margin:4px}
+main{max-width:1100px;margin:auto;padding:20px 16px}
+.filters{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:20px}
+.filters h4{margin:6px 0;font-size:13px;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chip{border:1px solid var(--line);background:#fff;padding:7px 14px;border-radius:99px;cursor:pointer;font-size:14px}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#eee}
+.card .body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.tag{font-size:12px;color:#fff;background:var(--amber);padding:2px 8px;border-radius:99px;align-self:flex-start;text-transform:capitalize}
+.off{position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-weight:700;font-size:13px;padding:4px 9px;border-radius:6px}
+.price{display:flex;gap:10px;align-items:baseline}
+.old{color:var(--red);text-decoration:line-through;text-decoration-color:var(--red);font-size:16px}
+.new{font-size:22px;font-weight:700;color:var(--navy)}
+select,input,textarea{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;font:inherit}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:36px 0}
+.step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+.info{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+footer{text-align:center;color:#666;font-size:14px;padding:26px 16px;border-top:1px solid var(--line)}
+.empty{text-align:center;color:#777;padding:40px;grid-column:1/-1}
+
+.wrap{max-width:900px;margin:20px auto;padding:0 16px}.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:18px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px}label{font-size:13px;color:#555;display:block;margin-bottom:3px}
+.vrow{display:grid;grid-template-columns:2fr 1.5fr 1fr auto;gap:8px;margin-bottom:6px}
+.item{display:flex;gap:12px;align-items:center;border-top:1px solid var(--line);padding:10px 0}.item img{width:60px;height:60px;object-fit:cover;border-radius:8px}.item .grow{flex:1}
+.item button{margin-left:6px;padding:7px 12px}.hide{display:none}.msg{color:var(--red);font-size:14px}
+</style></head><body>
+<header><div class="bar"><span class="brand">Pixara Digital Studio &middot; Admin</span><button class="btn gray hide" id="out">Sign out</button></div></header>
+<div class="wrap">
+<div class="panel" id="login"><p>Sign in with the authorised Google account.</p><button class="btn navy" id="in">Sign in with Google</button><p class="msg" id="lmsg"></p></div>
+<div id="app" class="hide">
+<div class="panel"><h3 id="ftitle">Add product</h3>
+<div class="row"><div><label>Name</label><input id="name"></div>
+<div><label>Type</label><select id="type"><option value="wood">Wood</option><option value="plastic">Plastic</option><option value="acrylic">Acrylic</option><option value="design">Design</option></select></div>
+<div><label>Discount %</label><input id="disc" type="number" min="0" max="95" value="0"></div></div>
+<div class="row"><div><label>Description</label><textarea id="desc" rows="2"></textarea></div>
+<div><label>Shape (optional, e.g. Heart, Clock)</label><input id="shape"></div>
+<div><label>Photo</label><input id="file" type="file" accept="image/*"><img id="prev" style="max-width:90px;margin-top:6px;display:none"></div></div>
+<label>Sizes and listed prices (INR)</label><div id="vars"></div>
+<button class="btn navy" id="addVar" type="button" style="margin:4px 0 10px">+ Add size</button>
+<div class="row"><label><input type="checkbox" id="vis" checked style="width:auto"> Visible on site</label>
+<label><input type="checkbox" id="stock" checked style="width:auto"> In stock</label></div>
+<button class="btn" id="save">Save product</button> <button class="btn gray" id="reset">Clear</button> <span class="msg" id="smsg"></span></div>
+<div class="panel"><h3>Products</h3><div id="list"></div></div>
+<div class="panel"><h3>Site settings</h3><div class="row"><div><label>WhatsApp number (with country code)</label><input id="wa" value="918811008135"></div>
+<div><label>Instagram URL</label><input id="ig"></div></div><label>Delivery note</label><textarea id="dn" rows="2">We currently deliver across North East India. Orders are prepaid only; Cash on Delivery is not available.</textarea>
+<br><br><button class="btn navy" id="saveSet">Save settings</button> <span class="msg" id="setmsg"></span></div>
+</div></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,collection,getDocs,addDoc,setDoc,updateDoc,deleteDoc,doc,getDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyA3G585G66_KhwTZ_NDZgA7ika5PPbA4YM",
+  authDomain: "pixara-studio-da1c4.firebaseapp.com",
+  projectId: "pixara-studio-da1c4",
+  storageBucket: "pixara-studio-da1c4.firebasestorage.app",
+  messagingSenderId: "727202048584",
+  appId: "1:727202048584:web:01127920f2b78754d4467d"
+};
+const ADMIN="mrinal8753855953@gmail.com",CLOUD="xlnd1mfb",PRESET="pixara_studio";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const SIZES=["4x6","5x7","6x8","8x10","10x12"];
+let editing=null,curImg="";
+$("in").onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>$("lmsg").textContent=e.message);
+$("out").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{const ok=u&&u.email===ADMIN;
+$("login").classList.toggle("hide",!!ok);$("app").classList.toggle("hide",!ok);$("out").classList.toggle("hide",!u);
+if(u&&!ok){$("lmsg").textContent="This account is not authorised.";signOut(auth)}
+if(ok){load();loadSettings()}});
+function vrow(v={size:"",style:"standard",price:""}){const d=document.createElement("div");d.className="vrow";
+d.innerHTML=`<input list="sz" placeholder="Size e.g. 8x10 or Heart 10 inch"><select><option value="standard">Standard</option><option value="topstand">Top Stand</option></select><input type="number" min="0" placeholder="Listed price"><button type="button" class="btn red">x</button>`;
+d.children[0].value=v.size;d.children[1].value=v.style;d.children[2].value=v.price;d.children[3].onclick=()=>d.remove();$("vars").appendChild(d)}
+document.body.insertAdjacentHTML("beforeend",`<datalist id="sz">${SIZES.map(s=>`<option value="${s}">`).join("")}</datalist>`);
+$("addVar").onclick=()=>vrow();
+function clearForm(){editing=null;curImg="";$("ftitle").textContent="Add product";["name","desc","shape"].forEach(i=>$(i).value="");$("disc").value=0;$("type").value="wood";
+$("vis").checked=true;$("stock").checked=true;$("file").value="";$("prev").style.display="none";$("vars").innerHTML="";vrow();$("smsg").textContent=""}
+$("reset").onclick=clearForm;clearForm();
+$("file").onchange=()=>{const f=$("file").files[0];if(f){$("prev").src=URL.createObjectURL(f);$("prev").style.display="block"}};
+function shrink(file){return new Promise(res=>{const im=new Image();im.onload=()=>{const m=1200,r=Math.min(1,m/Math.max(im.width,im.height));
+const c=document.createElement("canvas");c.width=im.width*r;c.height=im.height*r;c.getContext("2d").drawImage(im,0,0,c.width,c.height);c.toBlob(res,"image/jpeg",0.85)};im.src=URL.createObjectURL(file)})}
+$("save").onclick=async()=>{const m=$("smsg");m.textContent="Saving...";
+try{const variants=[...$("vars").children].map(r=>({size:r.children[0].value.trim(),style:r.children[1].value,price:Number(r.children[2].value)})).filter(v=>v.size&&v.price>0);
+if(!$("name").value.trim()||!variants.length){m.textContent="Name and at least one size with a price are required.";return}
+let imageUrl=curImg;const f=$("file").files[0];
+if(f){const b=await shrink(f);const fd=new FormData();fd.append("file",b,"photo.jpg");fd.append("upload_preset",PRESET);
+const rs=await fetch("https://api.cloudinary.com/v1_1/"+CLOUD+"/image/upload",{method:"POST",body:fd});const j=await rs.json();
+if(!j.secure_url)throw new Error((j.error&&j.error.message)||"Image upload failed");imageUrl=j.secure_url}
+if(!imageUrl){m.textContent="Please choose a photo.";return}
+const data={name:$("name").value.trim(),type:$("type").value,description:$("desc").value.trim(),shape:$("shape").value.trim(),discountPercent:Math.min(95,Math.max(0,Number($("disc").value)||0)),
+visible:$("vis").checked,inStock:$("stock").checked,variants,imageUrl};
+if(editing)await updateDoc(doc(db,"products",editing),data);else await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp()});
+clearForm();m.textContent="Saved.";load()}catch(e){m.textContent=e.message}};
+async function load(){const q=await getDocs(collection(db,"products"));const cache=q.docs.map(d=>({id:d.id,...d.data()}));
+$("list").innerHTML=cache.length?"":"No products yet.";
+cache.forEach(p=>{const d=document.createElement("div");d.className="item";
+d.innerHTML=`<img src="${(p.imageUrl||"").replace("/upload/","/upload/f_auto,q_auto,w_200/")}"><div class="grow"><b></b><br><small>${p.type} &middot; ${p.discountPercent||0}% off &middot; ${p.visible?"visible":"hidden"} &middot; ${p.inStock===false?"out of stock":"in stock"}</small></div><button class="btn navy">Edit</button><button class="btn red">Delete</button>`;
+d.querySelector("b").textContent=p.name;
+d.querySelectorAll("button")[0].onclick=()=>edit(p);d.querySelectorAll("button")[1].onclick=()=>del(p);$("list").appendChild(d)})}
+function edit(p){editing=p.id;curImg=p.imageUrl;$("ftitle").textContent="Edit product";$("name").value=p.name;$("type").value=p.type;$("disc").value=p.discountPercent||0;
+$("desc").value=p.description||"";$("shape").value=p.shape||"";$("vis").checked=!!p.visible;$("stock").checked=p.inStock!==false;$("file").value="";
+$("prev").src=p.imageUrl;$("prev").style.display="block";$("vars").innerHTML="";p.variants.forEach(vrow);scrollTo({top:0,behavior:"smooth"})}
+async function del(p){if(!confirm("Delete "+p.name+"? This cannot be undone."))return;await deleteDoc(doc(db,"products",p.id));load()}
+async function loadSettings(){const s=await getDoc(doc(db,"settings","site"));if(s.exists()){const x=s.data();$("wa").value=x.whatsapp||$("wa").value;$("ig").value=x.instagram||"";$("dn").value=x.deliveryNote||$("dn").value}}
+$("saveSet").onclick=async()=>{try{await setDoc(doc(db,"settings","site"),{whatsapp:$("wa").value.replace(/\D/g,""),instagram:$("ig").value.trim(),deliveryNote:$("dn").value.trim()});$("setmsg").textContent="Saved."}catch(e){$("setmsg").textContent=e.message}};
+</script></body></html>

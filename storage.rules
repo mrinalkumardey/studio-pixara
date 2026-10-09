@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /products/{file} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.token.email == "mrinal8753855953@gmail.com"
+        && request.auth.token.email_verified == true
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null
+        && request.auth.token.email == "mrinal8753855953@gmail.com";
+    }
+  }
+}

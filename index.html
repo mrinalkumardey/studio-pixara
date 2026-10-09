@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pixara Digital Studio | Photo Frames &amp; Photo Designing</title>
+<meta name="description" content="Wood, plastic and acrylic photo frames, birthday and designer frames. Order on WhatsApp. Delivery across North East India.">
+<style>
+:root{--navy:#14213d;--amber:#e8a317;--red:#d62828;--bg:#faf8f4;--line:#e6e1d6}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:#222}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--navy);text-decoration:none}
+.brand img{height:44px;width:auto}
+.btn{background:#25d366;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;font-size:15px;text-align:center}
+.btn.navy{background:var(--navy)}.btn.red{background:var(--red)}.btn.gray{background:#777}
+.hero{background:var(--navy);color:#fff;text-align:center;padding:44px 16px}
+.hero h1{margin:0 0 8px;font-size:clamp(24px,5vw,38px)}.hero p{margin:0 auto 18px;max-width:560px;opacity:.9}
+.hero a.btn{margin:4px}
+main{max-width:1100px;margin:auto;padding:20px 16px}
+.filters{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:20px}
+.filters h4{margin:6px 0;font-size:13px;color:#666;text-transform:uppercase;letter-spacing:.05em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chip{border:1px solid var(--line);background:#fff;padding:7px 14px;border-radius:99px;cursor:pointer;font-size:14px}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#eee}
+.card .body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.tag{font-size:12px;color:#fff;background:var(--amber);padding:2px 8px;border-radius:99px;align-self:flex-start;text-transform:capitalize}
+.off{position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-weight:700;font-size:13px;padding:4px 9px;border-radius:6px}
+.price{display:flex;gap:10px;align-items:baseline}
+.old{color:var(--red);text-decoration:line-through;text-decoration-color:var(--red);font-size:16px}
+.new{font-size:22px;font-weight:700;color:var(--navy)}
+select,input,textarea{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;font:inherit}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:36px 0}
+.step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+.info{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+footer{text-align:center;color:#666;font-size:14px;padding:26px 16px;border-top:1px solid var(--line)}
+.empty{text-align:center;color:#777;padding:40px;grid-column:1/-1}
+</style></head><body>
+<header><div class="bar"><a class="brand" href="/"><img src="logo.png" alt="Pixara Digital Studio" onerror="this.style.display='none'"><span>Pixara Digital Studio</span></a>
+<a class="btn" id="waTop" target="_blank" rel="noopener">WhatsApp us</a></div></header>
+<section class="hero"><h1>Photo Framing &amp; Professional Photo Designing</h1>
+<p>Wood, plastic and acrylic frames, matt finish prints, birthday and designer frames. Delivered across North East India.</p>
+<a class="btn" href="#catalogue">Browse frames</a>
+<a class="btn navy" href="https://www.instagram.com/" target="_blank" rel="noopener" id="igLink">Follow on Instagram</a></section>
+<main>
+<div class="filters" id="catalogue"><h4>Type</h4><div class="chips" id="typeChips"></div><h4>Size</h4><div class="chips" id="sizeChips"></div></div>
+<div class="grid" id="grid"><div class="empty">Loading frames...</div></div>
+<div class="steps">
+<div class="step"><b>1. Choose</b><br>Pick a frame and size, then tap Order on WhatsApp.</div>
+<div class="step"><b>2. Send your photo</b><br>Send it as a Document in WhatsApp so quality is not reduced.</div>
+<div class="step"><b>3. Pay and receive</b><br>Pay by UPI after we confirm. We ship once payment is received.</div></div>
+<div class="info"><b>Delivery &amp; payment</b><br><span id="deliveryNote">We currently deliver across North East India. Orders are prepaid only; Cash on Delivery is not available.</span></div>
+</main>
+<footer>&copy; <span id="yr"></span> Pixara Digital Studio &middot; A unit of Pixara Solutions &middot; <a href="https://pixara.in">pixara.in</a></footer>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,collection,query,where,getDocs,doc,getDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyA3G585G66_KhwTZ_NDZgA7ika5PPbA4YM",
+  authDomain: "pixara-studio-da1c4.firebaseapp.com",
+  projectId: "pixara-studio-da1c4",
+  storageBucket: "pixara-studio-da1c4.firebasestorage.app",
+  messagingSenderId: "727202048584",
+  appId: "1:727202048584:web:01127920f2b78754d4467d"
+};
+const db=getFirestore(initializeApp(firebaseConfig));
+let WA="918811008135";
+const TYPES=[["all","All"],["wood","Wood"],["plastic","Plastic"],["acrylic","Acrylic"],["design","Design"]];
+const SIZES=["4x6","5x7","6x8","8x10","10x12"];
+let state={type:"all",size:"all",stand:false},products=[];
+const $=id=>document.getElementById(id);
+const fmt=n=>"\u20B9"+Number(n).toLocaleString("en-IN");
+const disc=(p,d)=>Math.round(p*(1-(d||0)/100));
+const label=v=>(/^\d+x\d+$/.test(v.size)?v.size.replace("x","\u00D7"):v.size)+(v.style==="topstand"?" Top Stand":"");
+const img=u=>(u||"").replace("/upload/","/upload/f_auto,q_auto,w_600/");
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function okVar(v){if(state.size!=="all"&&v.size!==state.size)return false;if(state.stand&&v.style!=="topstand")return false;return true}
+function matches(p){if(state.type!=="all"&&p.type!==state.type)return false;return p.variants.some(okVar)}
+function chip(el,text,on,fn){const b=document.createElement("button");b.className="chip"+(on?" on":"");b.textContent=text;b.onclick=fn;el.appendChild(b)}
+function draw(){$("typeChips").innerHTML="";$("sizeChips").innerHTML="";
+TYPES.forEach(([v,t])=>chip($("typeChips"),t,state.type===v,()=>{state.type=v;draw()}));
+chip($("sizeChips"),"All sizes",state.size==="all",()=>{state.size="all";draw()});
+SIZES.forEach(s=>chip($("sizeChips"),s.replace("x","\u00D7"),state.size===s,()=>{state.size=s;draw()}));
+chip($("sizeChips"),"Top Stand",state.stand,()=>{state.stand=!state.stand;draw()});
+const list=products.filter(matches),g=$("grid");g.innerHTML="";
+if(!list.length){g.innerHTML='<div class="empty">No frames match these filters yet. Message us on WhatsApp for custom requests.</div>';return}
+list.forEach(p=>{const vs=p.variants.map((v,i)=>({v,i}));const pref=vs.find(x=>okVar(x.v))||vs[0];
+const c=document.createElement("div");c.className="card";const d=Number(p.discountPercent)||0;
+c.innerHTML=`${d>0?`<div class="off">${d}% OFF</div>`:""}<img loading="lazy" src="${img(p.imageUrl)}" alt="${esc(p.name)}">
+<div class="body"><span class="tag">${esc(p.type)}</span><b>${esc(p.name)}</b><div style="color:#666;font-size:14px">${esc(p.description||"")}</div>
+<select>${vs.map(x=>`<option value="${x.i}" ${x.i===pref.i?"selected":""}>${esc(label(x.v))}</option>`).join("")}</select>
+<div class="price"></div><a class="btn" target="_blank" rel="noopener"></a></div>`;
+const sel=c.querySelector("select"),pr=c.querySelector(".price"),btn=c.querySelector(".btn");
+const upd=()=>{const v=p.variants[sel.value],nw=disc(v.price,d);
+pr.innerHTML=(d>0?`<span class="old">${fmt(v.price)}</span>`:"")+`<span class="new">${fmt(nw)}</span>`;
+if(p.inStock===false){btn.textContent="Out of stock";btn.className="btn gray";btn.removeAttribute("href")}
+else{btn.textContent="Order on WhatsApp";
+const msg=`Hello Pixara Digital Studio, I want to order:\n${p.name}\nSize: ${label(v)}\nPrice: ${fmt(nw)}\nI will send my photo as a Document.`;
+btn.href=`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`}};
+sel.onchange=upd;upd();g.appendChild(c)})}
+(async()=>{$("yr").textContent=new Date().getFullYear();
+try{const s=await getDoc(doc(db,"settings","site"));if(s.exists()){const x=s.data();
+if(x.whatsapp)WA=x.whatsapp.replace(/\D/g,"");if(x.deliveryNote)$("deliveryNote").textContent=x.deliveryNote;if(x.instagram)$("igLink").href=x.instagram}}catch(e){}
+$("waTop").href="https://wa.me/"+WA;
+try{const q=await getDocs(query(collection(db,"products"),where("visible","==",true)));
+products=q.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.variants&&p.variants.length);
+products.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))}catch(e){$("grid").innerHTML='<div class="empty">Could not load products. Please refresh.</div>';return}
+draw()})();
+</script></body></html>
