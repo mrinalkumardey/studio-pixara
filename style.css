@@ -1485,3 +1485,141 @@ footer .copy {
     transform: none;
   }
 }
+/* =========================================================
+   CONTACT PAGE REFINEMENT
+   ========================================================= */
+
+.contact-hero {
+  padding: 38px 16px 26px;
+  background:
+    linear-gradient(180deg, rgba(16, 26, 46, 0.04) 0%, rgba(16, 26, 46, 0) 100%);
+}
+
+.contact-hero-wrap {
+  width: min(1200px, 100%);
+  margin-inline: auto;
+  padding: 34px 0 10px;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 30px;
+  align-items: end;
+
+  border-bottom: 1px solid rgba(16, 26, 46, 0.1);
+}
+
+.contact-hero-copy {
+  max-width: 720px;
+}
+
+.contact-kicker {
+  margin: 0 0 10px;
+  color: #9a6a11;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.contact-hero h1 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font: 500 clamp(42px, 5vw, 68px) / 0.95 var(--font-display);
+  letter-spacing: -0.04em;
+}
+
+.contact-intro {
+  max-width: 58ch;
+  margin: 0;
+  color: #4d586f;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.contact-hero-note {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  align-self: center;
+}
+
+.contact-hero-note span {
+  padding: 9px 12px;
+  border: 1px solid rgba(16, 26, 46, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #24314a;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+body main .cgrid {
+  margin-top: 8px;
+}
+
+body main .ccard {
+  border-radius: 18px;
+  border: 1px solid rgba(16, 26, 46, 0.08);
+  box-shadow: 0 10px 28px rgba(16, 26, 46, 0.05);
+}
+
+body main .ccard h3 {
+  margin-bottom: 10px;
+  font-size: 22px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+body main .ccard p {
+  color: #4b5568;
+  line-height: 1.65;
+}
+
+body main .info {
+  margin-top: 28px;
+}
+
+.contact-page-cta {
+  margin-top: 22px;
+}
+
+@media (max-width: 900px) {
+  .contact-hero-wrap {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 22px;
+  }
+
+  .contact-hero-note {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 680px) {
+  .contact-hero {
+    padding: 28px 16px 18px;
+  }
+
+  .contact-hero-wrap {
+    padding-top: 18px;
+  }
+
+  .contact-hero h1 {
+    font-size: clamp(34px, 12vw, 52px);
+  }
+
+  .contact-intro {
+    font-size: 16px;
+  }
+
+  .contact-hero-note {
+    gap: 8px;
+  }
+
+  .contact-hero-note span {
+    font-size: 11px;
+  }
+}
