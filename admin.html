@@ -84,6 +84,7 @@
 
         <label>Sizes and listed prices (INR)</label>
         <div id="vars"></div>
+
         <button class="btn navy" id="addVar" type="button" style="margin:4px 0 10px">+ Add size</button>
 
         <div class="row">
@@ -151,7 +152,7 @@
     const thumb = u => {
       if (!u) return "";
       if (u.includes("/upload/f_auto,q_auto,c_fill,w_200,h_200/")) return u;
-      return u.replace("/upload/","/upload/f_auto,q_auto,c_fill,w_200,h_200/");
+      return u.replace("/upload/", "/upload/f_auto,q_auto,c_fill,w_200,h_200/");
     };
 
     $("in").onclick = () =>
@@ -159,9 +160,8 @@
 
     $("out").onclick = () => signOut(auth);
 
-    onAuthStateChanged(auth, async u => {
+    onAuthStateChanged(auth, u => {
       const ok = u && u.email === ADMIN;
-
       $("login").classList.toggle("hide", !!ok);
       $("app").classList.toggle("hide", !ok);
       $("out").classList.toggle("hide", !u);
@@ -169,12 +169,11 @@
       if (u && !ok) {
         $("lmsg").textContent = "This account is not authorised.";
         signOut(auth);
-        return;
       }
 
       if (ok) {
-        await load();
-        await loadSettings();
+        load();
+        loadSettings();
       }
     });
 
@@ -206,6 +205,7 @@
 
     function renderImgs() {
       $("imgs").innerHTML = "";
+
       imgs.forEach((u, i) => {
         const d = document.createElement("div");
         d.className = "im" + (i === 0 ? " main" : "");
@@ -218,6 +218,7 @@
             <button type="button" data-a="x">Remove</button>
           </div>
         `;
+
         d.querySelectorAll("button").forEach(b => b.onclick = () => {
           const a = b.dataset.a;
           if (a === "x") imgs.splice(i, 1);
@@ -226,6 +227,7 @@
           else if (a === "r" && i < imgs.length - 1) [imgs[i + 1], imgs[i]] = [imgs[i], imgs[i + 1]];
           renderImgs();
         });
+
         $("imgs").appendChild(d);
       });
     }
@@ -311,7 +313,6 @@
 
     $("save").onclick = async () => {
       const m = $("smsg");
-
       if (uploading) {
         m.textContent = "Please wait for the photos to finish uploading.";
         return;
@@ -333,12 +334,12 @@
           return;
         }
 
-        if (!imgs.length) {
+        const cleanImgs = [...new Set(imgs.filter(Boolean))];
+
+        if (!cleanImgs.length) {
           m.textContent = "Please add at least one photo.";
           return;
         }
-
-        const cleanImgs = [...new Set(imgs.filter(Boolean))];
 
         const data = {
           name: $("name").value.trim(),
@@ -356,15 +357,12 @@
         if (editing) {
           await updateDoc(doc(db, "products", editing), data);
         } else {
-          await addDoc(collection(db, "products"), {
-            ...data,
-            createdAt: serverTimestamp()
-          });
+          await addDoc(collection(db, "products"), {...data, createdAt: serverTimestamp()});
         }
 
         clearForm();
         m.textContent = "Saved.";
-        await load();
+        load();
       } catch (e) {
         m.textContent = e.message;
       }
@@ -377,9 +375,10 @@
       $("list").innerHTML = cache.length ? "" : "No products yet.";
 
       cache.forEach(p => {
-        const im = p.images && p.images.length ? [...new Set(p.images.filter(Boolean))] : (p.imageUrl ? [p.imageUrl] : []);
+        const im = Array.isArray(p.images) && p.images.length ? p.images.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []);
         const d = document.createElement("div");
         d.className = "item";
+
         d.innerHTML = `
           <img src="${thumb(im[0] || "")}?v=${p.id}" alt="${p.name}">
           <div class="grow">
@@ -389,6 +388,7 @@
           <button class="btn navy">Edit</button>
           <button class="btn red">Delete</button>
         `;
+
         d.querySelector("b").textContent = p.name;
         d.querySelectorAll("button")[0].onclick = () => edit(p);
         d.querySelectorAll("button")[1].onclick = () => del(p);
@@ -398,9 +398,7 @@
 
     function edit(p) {
       editing = p.id;
-      imgs = [...(p.images && p.images.length ? p.images : [p.imageUrl])].filter(Boolean);
-      imgs = [...new Set(imgs)];
-
+      imgs = [...(Array.isArray(p.images) && p.images.length ? p.images.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []))];
       $("ftitle").textContent = "Edit product";
       $("name").value = p.name;
       $("type").value = p.type;
@@ -419,7 +417,7 @@
     async function del(p) {
       if (!confirm("Delete " + p.name + "? This cannot be undone.")) return;
       await deleteDoc(doc(db, "products", p.id));
-      await load();
+      load();
     }
 
     async function loadSettings() {
