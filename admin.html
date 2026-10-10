@@ -79,6 +79,7 @@
         <label>Photos (up to 6). The first photo is the main one.</label>
         <input id="file" type="file" accept="image/*" multiple>
         <span class="msg" id="umsg"></span>
+
         <div class="imgs" id="imgs"></div>
 
         <label>Sizes and listed prices (INR)</label>
@@ -118,9 +119,9 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {getFirestore,collection,getDocs,addDoc,setDoc,updateDoc,deleteDoc,doc,getDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA3G585G66_KhwTZ_NDZgA7ika5PPbA4YM",
@@ -135,7 +136,7 @@
     const CLOUD = "xlnd1mfb";
     const PRESET = "pixara_studio";
     const MAXIMG = 6;
-    const SIZES = ["4x6", "5x7", "6x8", "8x10", "10x12"];
+    const SIZES = ["4x6","5x7","6x8","8x10","10x12"];
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -150,7 +151,7 @@
     const thumb = u => {
       if (!u) return "";
       if (u.includes("/upload/f_auto,q_auto,c_fill,w_200,h_200/")) return u;
-      return u.replace("/upload/", "/upload/f_auto,q_auto,c_fill,w_200,h_200/");
+      return u.replace("/upload/","/upload/f_auto,q_auto,c_fill,w_200,h_200/");
     };
 
     $("in").onclick = () =>
@@ -158,8 +159,9 @@
 
     $("out").onclick = () => signOut(auth);
 
-    onAuthStateChanged(auth, u => {
+    onAuthStateChanged(auth, async u => {
       const ok = u && u.email === ADMIN;
+
       $("login").classList.toggle("hide", !!ok);
       $("app").classList.toggle("hide", !ok);
       $("out").classList.toggle("hide", !u);
@@ -167,15 +169,16 @@
       if (u && !ok) {
         $("lmsg").textContent = "This account is not authorised.";
         signOut(auth);
+        return;
       }
 
       if (ok) {
-        load();
-        loadSettings();
+        await load();
+        await loadSettings();
       }
     });
 
-    function vrow(v = { size: "", style: "standard", price: "" }) {
+    function vrow(v = {size:"",style:"standard",price:""}) {
       const d = document.createElement("div");
       d.className = "vrow";
       d.innerHTML = `
@@ -207,7 +210,7 @@
         const d = document.createElement("div");
         d.className = "im" + (i === 0 ? " main" : "");
         d.innerHTML = `
-          <img src="${thumb(u)}?v=${i}-${Date.now()}" alt="">
+          <img src="${thumb(u)}?v=${i}-${Date.now()}" alt="Uploaded product photo ${i + 1}">
           <div>
             ${i === 0 ? "Main" : '<button type="button" data-a="m">Make main</button>'}
             <button type="button" data-a="l">&larr;</button>
@@ -231,7 +234,7 @@
       editing = null;
       imgs = [];
       $("ftitle").textContent = "Add product";
-      ["name", "desc", "shape"].forEach(i => $(i).value = "");
+      ["name","desc","shape"].forEach(i => $(i).value = "");
       $("disc").value = 0;
       $("type").value = "wood";
       $("vis").checked = true;
@@ -267,6 +270,7 @@
     $("file").onchange = async () => {
       const files = [...$("file").files];
       if (!files.length) return;
+
       uploading = true;
 
       try {
@@ -277,8 +281,8 @@
           }
 
           $("umsg").textContent = "Uploading " + f.name + "...";
-          const b = await shrink(f);
 
+          const b = await shrink(f);
           const fd = new FormData();
           fd.append("file", b, "photo.jpg");
           fd.append("upload_preset", PRESET);
@@ -307,6 +311,7 @@
 
     $("save").onclick = async () => {
       const m = $("smsg");
+
       if (uploading) {
         m.textContent = "Please wait for the photos to finish uploading.";
         return;
@@ -328,12 +333,12 @@
           return;
         }
 
-        const cleanImgs = [...new Set(imgs.filter(Boolean))];
-
-        if (!cleanImgs.length) {
+        if (!imgs.length) {
           m.textContent = "Please add at least one photo.";
           return;
         }
+
+        const cleanImgs = [...new Set(imgs.filter(Boolean))];
 
         const data = {
           name: $("name").value.trim(),
@@ -351,12 +356,15 @@
         if (editing) {
           await updateDoc(doc(db, "products", editing), data);
         } else {
-          await addDoc(collection(db, "products"), { ...data, createdAt: serverTimestamp() });
+          await addDoc(collection(db, "products"), {
+            ...data,
+            createdAt: serverTimestamp()
+          });
         }
 
         clearForm();
         m.textContent = "Saved.";
-        load();
+        await load();
       } catch (e) {
         m.textContent = e.message;
       }
@@ -364,16 +372,16 @@
 
     async function load() {
       const q = await getDocs(collection(db, "products"));
-      const cache = q.docs.map(d => ({ id: d.id, ...d.data() }));
+      const cache = q.docs.map(d => ({id: d.id, ...d.data()}));
 
       $("list").innerHTML = cache.length ? "" : "No products yet.";
 
       cache.forEach(p => {
-        const im = p.images && p.images.length ? p.images : [p.imageUrl];
+        const im = p.images && p.images.length ? [...new Set(p.images.filter(Boolean))] : (p.imageUrl ? [p.imageUrl] : []);
         const d = document.createElement("div");
         d.className = "item";
         d.innerHTML = `
-          <img src="${thumb(im[0])}?v=${p.id}" alt="">
+          <img src="${thumb(im[0] || "")}?v=${p.id}" alt="${p.name}">
           <div class="grow">
             <b></b><br>
             <small>${p.type} &middot; ${im.length} photo(s) &middot; ${p.discountPercent || 0}% off &middot; ${p.visible ? "visible" : "hidden"} &middot; ${p.inStock === false ? "out of stock" : "in stock"}</small>
@@ -391,6 +399,8 @@
     function edit(p) {
       editing = p.id;
       imgs = [...(p.images && p.images.length ? p.images : [p.imageUrl])].filter(Boolean);
+      imgs = [...new Set(imgs)];
+
       $("ftitle").textContent = "Edit product";
       $("name").value = p.name;
       $("type").value = p.type;
@@ -403,13 +413,13 @@
       $("vars").innerHTML = "";
       p.variants.forEach(vrow);
       renderImgs();
-      scrollTo({ top: 0, behavior: "smooth" });
+      scrollTo({top: 0, behavior: "smooth"});
     }
 
     async function del(p) {
       if (!confirm("Delete " + p.name + "? This cannot be undone.")) return;
       await deleteDoc(doc(db, "products", p.id));
-      load();
+      await load();
     }
 
     async function loadSettings() {
