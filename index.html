@@ -302,7 +302,12 @@
     const disc = (p, d) => Math.round(p * (1 - (d || 0) / 100));
     const label = v => (/^\d+x\d+$/.test(v.size) ? v.size.replace("x", "\u00D7") : v.size) + (v.style === "topstand" ? " Top Stand" : "");
     const cdn = (u, t) => (u || "").includes("/upload/") ? u.replace("/upload/", "/upload/" + t + "/") : (u || "");
-    const imgsOf = p => p.images && p.images.length ? p.images : (p.imageUrl ? [p.imageUrl] : []);
+
+    const imgsOf = p => {
+      const arr = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+      if (arr.length) return [...new Set(arr)];
+      return p.imageUrl ? [p.imageUrl] : [];
+    };
 
     function esc(s) {
       return String(s).replace(/[&<>"']/g, c => ({
