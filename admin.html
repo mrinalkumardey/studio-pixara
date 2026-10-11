@@ -154,7 +154,7 @@
     const db = getFirestore(app);
 
     const $ = id => document.getElementById(id);
-    const SIZES = ["4x6","5x7","6x8","8x10","10x12"];
+    const SIZES = ["4x6","5x7","6x8","8x12","10x12"];
 
     let editing = null;
     let imgs = [];
@@ -200,7 +200,7 @@
       const d = document.createElement("div");
       d.className = "vrow";
       d.innerHTML = `
-        <input list="sz" placeholder="Size e.g. 8x10 or Heart 10 inch">
+        <input list="sz" placeholder="Size e.g. 8x12 or Heart 10 inch">
         <select>
           <option value="standard">Standard</option>
           <option value="topstand">Top Stand</option>
