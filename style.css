@@ -857,9 +857,87 @@ h2.sec {
   font-size: 16px;
 }
 
+/* =========================================================
+   PRODUCT DESCRIPTION — REFINED READ MORE
+   ========================================================= */
+
+.desc-wrap {
+  margin-top: 2px;
+  display: grid;
+  gap: 7px;
+}
+
 .desc {
-  color: #666;
+  position: relative;
+  color: #667085;
   font-size: 13.5px;
+  line-height: 1.68;
+  letter-spacing: 0.01em;
+}
+
+.clamp-desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-clamp: 2;
+  max-height: calc(1.68em * 2);
+}
+
+.clamp-desc.is-expanded {
+  display: block;
+  overflow: visible;
+  max-height: none;
+}
+
+.desc-wrap.is-clamped .desc::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.7em;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.98) 74%
+  );
+}
+
+.desc-wrap.is-clamped .clamp-desc.is-expanded::after {
+  display: none;
+}
+
+.desc-toggle {
+  align-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #7d5a1f;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.92;
+  transition: color 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.desc-toggle:hover {
+  color: #9a6a11;
+  opacity: 1;
+}
+
+.desc-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(216, 168, 78, 0.22);
+  border-radius: 4px;
+}
+
+.desc-toggle:active {
+  transform: translateY(1px);
 }
 
 .price {
@@ -1265,6 +1343,16 @@ footer .copy {
     width: 40px;
     height: 40px;
   }
+
+  .desc {
+    font-size: 13px;
+    line-height: 1.62;
+  }
+
+  .desc-toggle {
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+  }
 }
 
 @media (max-width: 680px) {
@@ -1449,6 +1537,14 @@ footer .copy {
   .hero-frame-main figcaption {
     display: none;
   }
+
+  .desc {
+    font-size: 12.75px;
+  }
+
+  .desc-toggle {
+    font-size: 10px;
+  }
 }
 
 @media (max-width: 390px) {
@@ -1485,6 +1581,7 @@ footer .copy {
     transform: none;
   }
 }
+
 /* =========================================================
    CONTACT PAGE REFINEMENT
    ========================================================= */

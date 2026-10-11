@@ -7,6 +7,7 @@
   <title>Admin | Pixara Digital Studio</title>
   <link rel="icon" href="logo.png">
   <link rel="stylesheet" href="style.css">
+
   <style>
     .wrap{max-width:900px;margin:20px auto;padding:0 16px}
     .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:18px}
@@ -24,6 +25,7 @@
     .im img{width:96px;height:96px;object-fit:cover;border-radius:8px;border:2px solid var(--line)}
     .im.main img{border-color:var(--navy)}
     .im button{border:0;background:#eee;border-radius:6px;padding:3px 7px;cursor:pointer;margin:3px 1px;font-size:12px}
+    .pid{font-family:monospace;font-size:12px;color:#666;margin-top:2px}
   </style>
 </head>
 <body>
@@ -50,6 +52,7 @@
             <label>Name</label>
             <input id="name">
           </div>
+
           <div>
             <label>Type</label>
             <select id="type">
@@ -59,6 +62,7 @@
               <option value="design">Design (shows Designer Frame)</option>
             </select>
           </div>
+
           <div>
             <label>Discount %</label>
             <input id="disc" type="number" min="0" max="95" value="0">
@@ -70,6 +74,7 @@
             <label>Description</label>
             <textarea id="desc" rows="2"></textarea>
           </div>
+
           <div>
             <label>Shape (optional, e.g. Heart, Clock)</label>
             <input id="shape">
@@ -84,7 +89,6 @@
 
         <label>Sizes and listed prices (INR)</label>
         <div id="vars"></div>
-
         <button class="btn navy" id="addVar" type="button" style="margin:4px 0 10px">+ Add size</button>
 
         <div class="row">
@@ -110,6 +114,7 @@
             <input id="wa" value="918811008135">
           </div>
         </div>
+
         <label>Delivery note</label>
         <textarea id="dn" rows="2">We currently deliver across North East India. Orders are prepaid only; Cash on Delivery is not available.</textarea>
         <br><br>
@@ -137,13 +142,13 @@
     const CLOUD = "xlnd1mfb";
     const PRESET = "pixara_studio";
     const MAXIMG = 6;
-    const SIZES = ["4x6","5x7","6x8","8x10","10x12"];
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     const $ = id => document.getElementById(id);
+    const SIZES = ["4x6","5x7","6x8","8x10","10x12"];
 
     let editing = null;
     let imgs = [];
@@ -152,16 +157,18 @@
     const thumb = u => {
       if (!u) return "";
       if (u.includes("/upload/f_auto,q_auto,c_fill,w_200,h_200/")) return u;
-      return u.replace("/upload/", "/upload/f_auto,q_auto,c_fill,w_200,h_200/");
+      return u.replace("/upload/","/upload/f_auto,q_auto,c_fill,w_200,h_200/");
     };
 
     $("in").onclick = () =>
-      signInWithPopup(auth, new GoogleAuthProvider()).catch(e => $("lmsg").textContent = e.message);
+      signInWithPopup(auth, new GoogleAuthProvider())
+        .catch(e => $("lmsg").textContent = e.message);
 
     $("out").onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, u => {
       const ok = u && u.email === ADMIN;
+
       $("login").classList.toggle("hide", !!ok);
       $("app").classList.toggle("hide", !ok);
       $("out").classList.toggle("hide", !u);
@@ -205,12 +212,11 @@
 
     function renderImgs() {
       $("imgs").innerHTML = "";
-
       imgs.forEach((u, i) => {
         const d = document.createElement("div");
         d.className = "im" + (i === 0 ? " main" : "");
         d.innerHTML = `
-          <img src="${thumb(u)}?v=${i}-${Date.now()}" alt="Uploaded product photo ${i + 1}">
+          <img src="${thumb(u)}?v=${i}-${Date.now()}" alt="">
           <div>
             ${i === 0 ? "Main" : '<button type="button" data-a="m">Make main</button>'}
             <button type="button" data-a="l">&larr;</button>
@@ -218,7 +224,6 @@
             <button type="button" data-a="x">Remove</button>
           </div>
         `;
-
         d.querySelectorAll("button").forEach(b => b.onclick = () => {
           const a = b.dataset.a;
           if (a === "x") imgs.splice(i, 1);
@@ -227,7 +232,6 @@
           else if (a === "r" && i < imgs.length - 1) [imgs[i + 1], imgs[i]] = [imgs[i], imgs[i + 1]];
           renderImgs();
         });
-
         $("imgs").appendChild(d);
       });
     }
@@ -272,7 +276,6 @@
     $("file").onchange = async () => {
       const files = [...$("file").files];
       if (!files.length) return;
-
       uploading = true;
 
       try {
@@ -313,6 +316,7 @@
 
     $("save").onclick = async () => {
       const m = $("smsg");
+
       if (uploading) {
         m.textContent = "Please wait for the photos to finish uploading.";
         return;
@@ -334,12 +338,12 @@
           return;
         }
 
-        const cleanImgs = [...new Set(imgs.filter(Boolean))];
-
-        if (!cleanImgs.length) {
+        if (!imgs.length) {
           m.textContent = "Please add at least one photo.";
           return;
         }
+
+        const cleanImgs = [...new Set(imgs.filter(Boolean))];
 
         const data = {
           name: $("name").value.trim(),
@@ -355,9 +359,19 @@
         };
 
         if (editing) {
-          await updateDoc(doc(db, "products", editing), data);
+          await updateDoc(doc(db, "products", editing), {
+            ...data,
+            productId: editing
+          });
         } else {
-          await addDoc(collection(db, "products"), {...data, createdAt: serverTimestamp()});
+          const ref = await addDoc(collection(db, "products"), {
+            ...data,
+            createdAt: serverTimestamp()
+          });
+
+          await updateDoc(doc(db, "products", ref.id), {
+            productId: ref.id
+          });
         }
 
         clearForm();
@@ -375,14 +389,15 @@
       $("list").innerHTML = cache.length ? "" : "No products yet.";
 
       cache.forEach(p => {
-        const im = Array.isArray(p.images) && p.images.length ? p.images.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []);
+        const im = p.images && p.images.length ? p.images : [p.imageUrl];
         const d = document.createElement("div");
         d.className = "item";
 
         d.innerHTML = `
-          <img src="${thumb(im[0] || "")}?v=${p.id}" alt="${p.name}">
+          <img src="${thumb(im[0])}?v=${p.id}" alt="">
           <div class="grow">
-            <b></b><br>
+            <b></b>
+            <div class="pid">ID: ${p.productId || p.id}</div>
             <small>${p.type} &middot; ${im.length} photo(s) &middot; ${p.discountPercent || 0}% off &middot; ${p.visible ? "visible" : "hidden"} &middot; ${p.inStock === false ? "out of stock" : "in stock"}</small>
           </div>
           <button class="btn navy">Edit</button>
@@ -398,7 +413,9 @@
 
     function edit(p) {
       editing = p.id;
-      imgs = [...(Array.isArray(p.images) && p.images.length ? p.images.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []))];
+      imgs = [...(p.images && p.images.length ? p.images : [p.imageUrl])];
+      imgs = [...new Set(imgs.filter(Boolean))];
+
       $("ftitle").textContent = "Edit product";
       $("name").value = p.name;
       $("type").value = p.type;
@@ -408,9 +425,11 @@
       $("vis").checked = !!p.visible;
       $("stock").checked = p.inStock !== false;
       $("file").value = "";
+
       $("vars").innerHTML = "";
       p.variants.forEach(vrow);
       renderImgs();
+
       scrollTo({top: 0, behavior: "smooth"});
     }
 

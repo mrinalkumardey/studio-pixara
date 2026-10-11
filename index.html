@@ -361,6 +361,60 @@
       $("fcount").textContent = n ? " (" + n + ")" : "";
     }
 
+    function setupDescriptionToggles(root = document) {
+      const groups = root.querySelectorAll(".desc-wrap");
+
+      groups.forEach((wrap, index) => {
+        const desc = wrap.querySelector(".clamp-desc");
+        const btn = wrap.querySelector(".desc-toggle");
+        if (!desc || !btn) return;
+
+        if (!desc.id) desc.id = `desc-auto-${index}`;
+        btn.setAttribute("aria-controls", desc.id);
+
+        const checkClamp = () => {
+          const wasExpanded = desc.classList.contains("is-expanded");
+          if (wasExpanded) desc.classList.remove("is-expanded");
+
+          const overflowing = desc.scrollHeight > desc.clientHeight + 1;
+
+          if (overflowing) {
+            btn.hidden = false;
+            wrap.classList.add("is-clamped");
+            btn.setAttribute("aria-expanded", wasExpanded ? "true" : "false");
+            btn.textContent = wasExpanded ? "Read less" : "Read more";
+          } else {
+            btn.hidden = true;
+            wrap.classList.remove("is-clamped");
+            desc.classList.remove("is-expanded");
+            btn.setAttribute("aria-expanded", "false");
+            btn.textContent = "Read more";
+          }
+
+          if (wasExpanded && overflowing) {
+            desc.classList.add("is-expanded");
+            btn.setAttribute("aria-expanded", "true");
+            btn.textContent = "Read less";
+          }
+        };
+
+        btn.addEventListener("click", () => {
+          const expanded = desc.classList.contains("is-expanded");
+          desc.classList.toggle("is-expanded", !expanded);
+          btn.setAttribute("aria-expanded", String(!expanded));
+          btn.textContent = expanded ? "Read more" : "Read less";
+        });
+
+        checkClamp();
+
+        let resizeTimer;
+        window.addEventListener("resize", () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(checkClamp, 120);
+        });
+      });
+    }
+
     function render() {
       filters();
 
@@ -381,6 +435,7 @@
       }
 
       list.forEach(p => g.appendChild(card(p)));
+      setupDescriptionToggles(g);
     }
 
     function card(p) {
@@ -392,6 +447,8 @@
       const c = document.createElement("div");
       c.className = "card";
 
+      const descId = `desc-${String(p.productId || p.id).replace(/[^a-zA-Z0-9_-]/g, "")}`;
+
       c.innerHTML = `
         <div class="media">
           ${d > 0 ? `<span class="off">${d}% OFF</span>` : ""}
@@ -402,7 +459,22 @@
         <div class="body">
           <span class="tag">${esc(TYPE_LABEL[p.type] || p.type)}</span>
           <b>${esc(p.name)}</b>
-          <div class="desc">${esc(p.description || "")}</div>
+
+          ${p.description ? `
+            <div class="desc-wrap">
+              <div class="desc clamp-desc" id="${descId}">${esc(p.description)}</div>
+              <button
+                class="desc-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="${descId}"
+                hidden
+              >
+                Read more
+              </button>
+            </div>
+          ` : ""}
+
           <select>${vs.map(x => `<option value="${x.i}" ${x.i === pref.i ? "selected" : ""}>${esc(label(x.v))}</option>`).join("")}</select>
           <div class="price"></div>
           <a class="btn" target="_blank" rel="noopener noreferrer"></a>
@@ -444,7 +516,14 @@
           btn.removeAttribute("href");
         } else {
           btn.textContent = "Order on WhatsApp";
-          const msg = `Hello Pixara Digital Studio, I want to order:\n${p.name}\nSize: ${label(v)}\nPrice: ${fmt(nw)}\nI will send my photo as a Document.`;
+          const msg = `Hello Pixara Digital Studio, I want to order:
+
+Product: ${p.name}
+Product ID: ${p.productId || p.id}
+Size: ${label(v)}
+Price: ${fmt(nw)}
+
+I will send my photo as a Document.`;
           btn.href = `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
         }
       };
