@@ -26,6 +26,7 @@
     .im.main img{border-color:var(--navy)}
     .im button{border:0;background:#eee;border-radius:6px;padding:3px 7px;cursor:pointer;margin:3px 1px;font-size:12px}
     .pid{font-family:monospace;font-size:12px;color:#666;margin-top:2px}
+    #productId[readonly]{background:#f7f7f7;color:#666;cursor:default}
   </style>
 </head>
 <body>
@@ -48,6 +49,11 @@
         <h3 id="ftitle">Add product</h3>
 
         <div class="row">
+          <div>
+            <label>Product ID</label>
+            <input id="productId" placeholder="e.g. PX-001 or DS-001">
+          </div>
+
           <div>
             <label>Name</label>
             <input id="name">
@@ -127,7 +133,7 @@
   <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {getFirestore,collection,getDocs,addDoc,setDoc,updateDoc,deleteDoc,doc,getDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {getFirestore,collection,getDocs,setDoc,updateDoc,deleteDoc,doc,getDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA3G585G66_KhwTZ_NDZgA7ika5PPbA4YM",
@@ -159,6 +165,12 @@
       if (u.includes("/upload/f_auto,q_auto,c_fill,w_200,h_200/")) return u;
       return u.replace("/upload/","/upload/f_auto,q_auto,c_fill,w_200,h_200/");
     };
+
+    const cleanProductId = s => String(s || "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^A-Z0-9-_]/g, "");
 
     $("in").onclick = () =>
       signInWithPopup(auth, new GoogleAuthProvider())
@@ -240,11 +252,12 @@
       editing = null;
       imgs = [];
       $("ftitle").textContent = "Add product";
-      ["name","desc","shape"].forEach(i => $(i).value = "");
+      ["productId","name","desc","shape"].forEach(i => $(i).value = "");
       $("disc").value = 0;
       $("type").value = "wood";
       $("vis").checked = true;
       $("stock").checked = true;
+      $("productId").readOnly = false;
       $("file").value = "";
       $("vars").innerHTML = "";
       vrow();
@@ -325,6 +338,8 @@
       m.textContent = "Saving...";
 
       try {
+        const productId = cleanProductId($("productId").value);
+
         const variants = [...$("vars").children]
           .map(r => ({
             size: r.children[0].value.trim(),
@@ -332,6 +347,16 @@
             price: Number(r.children[2].value)
           }))
           .filter(v => v.size && v.price > 0);
+
+        if (!productId) {
+          m.textContent = "Product ID is required.";
+          return;
+        }
+
+        if (!/^[A-Z0-9]+(?:[-_][A-Z0-9]+)*$/.test(productId)) {
+          m.textContent = "Use only letters, numbers, hyphens or underscores in Product ID.";
+          return;
+        }
 
         if (!$("name").value.trim() || !variants.length) {
           m.textContent = "Name and at least one size with a price are required.";
@@ -346,6 +371,7 @@
         const cleanImgs = [...new Set(imgs.filter(Boolean))];
 
         const data = {
+          productId,
           name: $("name").value.trim(),
           type: $("type").value,
           description: $("desc").value.trim(),
@@ -359,18 +385,19 @@
         };
 
         if (editing) {
-          await updateDoc(doc(db, "products", editing), {
-            ...data,
-            productId: editing
-          });
+          await updateDoc(doc(db, "products", editing), data);
         } else {
-          const ref = await addDoc(collection(db, "products"), {
+          const ref = doc(db, "products", productId);
+          const existing = await getDoc(ref);
+
+          if (existing.exists()) {
+            m.textContent = "This Product ID already exists. Please use a unique ID.";
+            return;
+          }
+
+          await setDoc(ref, {
             ...data,
             createdAt: serverTimestamp()
-          });
-
-          await updateDoc(doc(db, "products", ref.id), {
-            productId: ref.id
           });
         }
 
@@ -417,6 +444,8 @@
       imgs = [...new Set(imgs.filter(Boolean))];
 
       $("ftitle").textContent = "Edit product";
+      $("productId").value = p.productId || p.id || "";
+      $("productId").readOnly = true;
       $("name").value = p.name;
       $("type").value = p.type;
       $("disc").value = p.discountPercent || 0;
