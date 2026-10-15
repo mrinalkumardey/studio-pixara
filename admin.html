@@ -113,6 +113,14 @@
       </div>
 
       <div class="panel">
+        <h3>Homepage hero photos</h3>
+        <p style="font-size:13px;color:#555;margin-bottom:8px">These three photos appear on the homepage. Upload, replace or remove each one, then press Save.</p>
+        <div class="imgs" id="heroSlots"></div>
+        <button class="btn navy" id="saveHero" type="button">Save hero photos</button>
+        <span class="msg" id="heroMsg"></span>
+      </div>
+
+      <div class="panel">
         <h3>Site settings</h3>
         <div class="row">
           <div>
@@ -468,12 +476,78 @@
       load();
     }
 
+    const HERO_LABELS = ["Main (large)", "Top right", "Bottom right"];
+    let hero = ["", "", ""];
+    let heroBusy = false;
+
+    function renderHero() {
+      const box = $("heroSlots");
+      box.innerHTML = "";
+      HERO_LABELS.forEach((lab, i) => {
+        const d = document.createElement("div");
+        d.className = "im";
+        d.style.width = "140px";
+        d.innerHTML = `
+          ${hero[i]
+            ? `<img src="${thumb(hero[i])}" alt="" style="width:140px;height:140px">`
+            : `<div style="width:140px;height:140px;border:2px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#888">Empty</div>`}
+          <div><b>${lab}</b></div>
+          <div>
+            <button type="button" data-a="u">${hero[i] ? "Replace" : "Upload"}</button>
+            ${hero[i] ? '<button type="button" data-a="x">Remove</button>' : ""}
+          </div>
+          <input type="file" accept="image/*" style="display:none">
+        `;
+        const fi = d.querySelector("input");
+        d.querySelector('[data-a="u"]').onclick = () => fi.click();
+        const rm = d.querySelector('[data-a="x"]');
+        if (rm) rm.onclick = () => { hero[i] = ""; renderHero(); };
+        fi.onchange = async () => {
+          if (!fi.files[0]) return;
+          heroBusy = true;
+          $("heroMsg").textContent = "Uploading...";
+          try {
+            const b = await shrink(fi.files[0]);
+            const fd = new FormData();
+            fd.append("file", b, "photo.jpg");
+            fd.append("upload_preset", PRESET);
+            const rs = await fetch("https://api.cloudinary.com/v1_1/" + CLOUD + "/image/upload", { method: "POST", body: fd });
+            const j = await rs.json();
+            if (!j.secure_url) throw new Error((j.error && j.error.message) || "Image upload failed");
+            hero[i] = j.secure_url;
+            $("heroMsg").textContent = "Uploaded. Press Save to publish.";
+            renderHero();
+          } catch (e) {
+            $("heroMsg").textContent = e.message;
+          }
+          heroBusy = false;
+        };
+        box.appendChild(d);
+      });
+    }
+
+    $("saveHero").onclick = async () => {
+      if (heroBusy) { $("heroMsg").textContent = "Please wait for the upload to finish."; return; }
+      try {
+        await setDoc(doc(db, "settings", "site"), { heroImages: hero }, { merge: true });
+        $("heroMsg").textContent = "Saved.";
+      } catch (e) {
+        $("heroMsg").textContent = e.message;
+      }
+    };
+
+    renderHero();
+
     async function loadSettings() {
       const s = await getDoc(doc(db, "settings", "site"));
       if (s.exists()) {
         const x = s.data();
         $("wa").value = x.whatsapp || $("wa").value;
         $("dn").value = x.deliveryNote || $("dn").value;
+        if (Array.isArray(x.heroImages)) {
+          hero = [...x.heroImages, "", "", ""].slice(0, 3);
+          renderHero();
+        }
       }
     }
 
@@ -482,7 +556,7 @@
         await setDoc(doc(db, "settings", "site"), {
           whatsapp: $("wa").value.replace(/\D/g, ""),
           deliveryNote: $("dn").value.trim()
-        });
+        }, { merge: true });
         $("setmsg").textContent = "Saved.";
       } catch (e) {
         $("setmsg").textContent = e.message;

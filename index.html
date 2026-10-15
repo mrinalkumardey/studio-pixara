@@ -181,7 +181,7 @@
           <input
             id="q"
             type="search"
-            placeholder="Search frames..."
+            placeholder="Search frames or Product ID..."
             aria-label="Search frames"
           >
 
@@ -278,6 +278,7 @@
 
     const db = getFirestore(initializeApp(firebaseConfig));
     let WA = "918811008135";
+    let HERO = [];
 
     const TYPES = [
       ["all", "All frames"],
@@ -321,10 +322,17 @@
 
     const okVar = v => !(state.size !== "all" && v.size !== state.size) && !(state.stand && v.style !== "topstand");
 
-    const matches = p =>
-      (state.type === "all" || p.type === state.type) &&
-      p.variants.some(okVar) &&
-      (!state.q || (p.name + " " + (p.description || "")).toLowerCase().includes(state.q));
+    const matches = p => {
+      const pid = String(p.productId || p.id || "").toLowerCase();
+      const hay = (p.name + " " + (p.description || "") + " " + pid).toLowerCase();
+      const strip = s => s.replace(/[\s\-_]/g, "");
+
+      return (
+        (state.type === "all" || p.type === state.type) &&
+        p.variants.some(okVar) &&
+        (!state.q || hay.includes(state.q) || strip(pid).includes(strip(state.q)))
+      );
+    };
 
     const minPrice = p => Math.min(...p.variants.filter(okVar).map(v => disc(v.price, p.discountPercent)));
 
@@ -618,6 +626,22 @@ I will send my photo as a Document.`;
       render();
     };
 
+    function loadHero() {
+      document.querySelectorAll("[data-hero-image]").forEach((slot, i) => {
+        if (!HERO[i]) return;
+
+        const image = new Image();
+        image.alt = "";
+        image.decoding = "async";
+        image.src = cdn(HERO[i], i === 0 ? "f_auto,q_auto,c_limit,w_1100" : "f_auto,q_auto,c_limit,w_700");
+
+        image.onload = () => {
+          slot.replaceChildren(image);
+          slot.classList.add("loaded");
+        };
+      });
+    }
+
     (async () => {
       $("grid").innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
       filters();
@@ -628,31 +652,17 @@ I will send my photo as a Document.`;
           const x = s.data();
           if (x.whatsapp) WA = x.whatsapp.replace(/\D/g, "");
           if (x.deliveryNote) $("deliveryNote").textContent = x.deliveryNote;
+          if (Array.isArray(x.heroImages)) HERO = x.heroImages;
         }
       } catch (e) {}
 
       $("waTop").href = "https://wa.me/" + WA;
+      loadHero();
 
       try {
         const q = await getDocs(query(collection(db, "products"), where("visible", "==", true)));
         products = q.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.variants && p.variants.length);
         products.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-        const heroUrls = products.map(p => imgsOf(p)[0]).filter(Boolean).slice(0, 3);
-
-        document.querySelectorAll("[data-hero-image]").forEach((slot, i) => {
-          if (!heroUrls[i]) return;
-
-          const image = new Image();
-          image.alt = "";
-          image.decoding = "async";
-          image.src = cdn(heroUrls[i], i === 0 ? "f_auto,q_auto,c_limit,w_1100" : "f_auto,q_auto,c_limit,w_700");
-
-          image.onload = () => {
-            slot.replaceChildren(image);
-            slot.classList.add("loaded");
-          };
-        });
       } catch (e) {
         $("grid").innerHTML = '<div class="empty">Could not load products. Please refresh.</div>';
         return;
